@@ -1,0 +1,73 @@
+{
+  "tabs": {
+    "home": "હોમ",
+    "medicines": "સ્ટોર",
+    "profile": "પ્રોફાઇલ"
+  },
+  "home": {
+    "goodMorning": "શુભ સવાર 👋",
+    "post": "પોસ્ટ"
+  },
+  "weather": {
+    "humidity": "ભેજ",
+    "rainChance": "વરસાદની સંભાવના"
+  },
+  "post": {
+    "whatsHappening": "ખેતી અપડેટ શેર કરો...",
+    "allPosts": "તમામ પોસ્ટ્સ",
+    "cropIssues": "પાકની સમસ્યાઓ",
+    "tips": "ટિપ્સ",
+    "market": "બજાર",
+    "likes": "લાઈક્સ",
+    "comments": "ટિપ્પણીઓ",
+    "shares": "શેર",
+    "like": "પસંદ કરો",
+    "comment": "ટિપ્પણી",
+    "share": "શેર કરો",
+    "createPost": "પોસ્ટ બનાવો",
+    "postAction": "પોસ્ટ",
+    "public": "જાહેર",
+    "uploadPhoto": "ખેતરનો ફોટો અપલોડ કરો",
+    "uploadHelper": "તમારી પાકની સમસ્યા અથવા ખેતી વિશે અપડેટ બતાવો",
+    "describeProblem": "તમારી ખેતીની સમસ્યા અથવા અપડેટનું વર્ણન કરો...",
+    "exampleHelper": "ઉદાહરણ: મારા કપાસના પાકના પાંદડા પીળા થઈ રહ્યા છે.",
+    "catCropIssue": "પાકની સમસ્યા",
+    "catPestProblem": "જીવાતની સમસ્યા",
+    "catFarmingTip": "ખેતીની ટિપ્સ",
+    "catWeather": "હવામાન",
+    "catMarketUpdate": "બજાર અપડેટ",
+    "saveDraft": "ડ્રાફ્ટ સાચવો",
+    "postNow": "પોસ્ટ કરો"
+  },
+  "comments": {
+    "title": "ટિપ્પણીઓ",
+    "writeComment": "એક ટિપ્પણી લખો...",
+    "reply": "જવાબ આપો",
+    "noCommentsYet": "હજુ સુધી કોઈ ટિપ્પણીઓ નથી",
+    "beFirstToShare": "તમારા વિચારો શેર કરનાર પ્રથમ બનો"
+  },
+  "notifications": {
+    "title": "સૂચનાઓ",
+    "new": "નવું",
+    "earlier": "અગાઉ",
+    "empty": "હજુ સુધી કોઈ સૂચના નથી."
+  },
+  "medicine": {
+    "searchPlaceholder": "દવા અથવા રોગ દ્વારા શોધો...",
+    "all": "બધા",
+    "fertilizer": "ખાતર",
+    "pesticide": "જંતુનાશક",
+    "fungicide": "ફૂગનાશક",
+    "seeds": "બીજ",
+    "fullDescription": "સંપૂર્ણ વર્ણન",
+    "howToUse": "કેવી રીતે ઉપયોગ કરવો",
+    "safetyWarnings": "સલામતી અને ચેતવણી",
+    "buyNow": "હવે ખરીદો"
+  },
+  "profile": {
+    "myPosts": "મારી પોસ્ટ્સ",
+    "likedPosts": "ગમતી પોસ્ટ્સ",
+    "savedPosts": "સાચવેલી પોસ્ટ્સ",
+    "totalPosts": "કુલ પોસ્ટ્સ"
+  }
+}

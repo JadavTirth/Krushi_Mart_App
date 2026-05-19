@@ -1,0 +1,128 @@
+export const MOCK_USER = {
+  name: 'Ramesh Bhai',
+  location: 'Ahmedabad',
+  avatar: 'https://i.pravatar.cc/150?img=11',
+  village: 'Rampur, Gujarat',
+  totalPosts: 12,
+  followers: 128,
+  following: 45,
+  role: 'Cotton & Wheat Farmer',
+  experience: '12 Years',
+  farmType: 'Organic & Traditional',
+  bio: 'Organic farming enthusiast helping farmers grow healthier crops.',
+  crops: ['Cotton', 'Tomato', 'Maize'],
+  phone: '+91 98765 43210',
+  email: 'ramesh.farmer@krushi.com',
+};
+
+export const MOCK_STORIES = [
+  { id: 's0', name: 'Your Story', avatar: MOCK_USER.avatar, isUser: true },
+  { id: 's1', name: 'Raju Patel', avatar: 'https://i.pravatar.cc/150?img=33' },
+  { id: 's2', name: 'Sanjay', avatar: 'https://i.pravatar.cc/150?img=60' },
+  { id: 's3', name: 'Amit Bhai', avatar: 'https://i.pravatar.cc/150?img=59' },
+  { id: 's4', name: 'Mukesh', avatar: 'https://i.pravatar.cc/150?img=12' },
+];
+
+export const MOCK_WEATHER = {
+  city: 'Ahmedabad',
+  temp: '32',
+  humidity: '60',
+  rainChance: '20',
+  condition: '🌤',
+};
+
+export const MOCK_MEDICINES = [
+  {
+    id: 'm1',
+    name: 'Urea',
+    disease: 'Nitrogen Deficiency',
+    description: 'Provides plants with nitrogen to promote green leafy growth and make plants look lush. Best used during the vegetative stage of crop growth.',
+    use: 'Crop Growth',
+    howToUse: 'Mix with water and apply directly to soil, or broadcast evenly across the field before watering.',
+    price: '₹266 / 45kg',
+    warning: 'Avoid excess usage',
+    safety: 'Wear gloves. Do not apply directly to leaves as it can burn the plant.',
+    quantity: '45kg Bag',
+    reviews: '4.8 (120 Reviews)',
+    category: 'Fertilizer',
+  },
+  {
+    id: 'm2',
+    name: 'Mancozeb 75% WP',
+    disease: 'Early & Late Blight',
+    description: 'A broad-spectrum contact fungicide with protective action. Effective against a wide variety of fungal diseases in fruits and vegetables.',
+    use: 'Fungus Control',
+    howToUse: 'Spray 2.5g per liter of water. Ensure complete coverage of the foliage.',
+    price: '₹350 / 500g',
+    warning: 'Keep away from children and pets',
+    safety: 'Wear full protective clothing including a mask and goggles during application.',
+    quantity: '500g Pack',
+    reviews: '4.5 (85 Reviews)',
+    category: 'Fungicide',
+  },
+  {
+    id: 'm3',
+    name: 'Chlorpyrifos 20% EC',
+    disease: 'Termites & Shoot Borer',
+    description: 'An insecticide used to control soil and foliage pests. Highly effective for long-term termite control and soil-borne insects.',
+    use: 'Pest Control',
+    howToUse: 'Apply 3-4 ml per liter of water as a foliar spray or soil drench.',
+    price: '₹420 / 1L',
+    warning: 'Wear protective mask while spraying',
+    safety: 'Highly toxic to bees and fish. Avoid application near water bodies.',
+    quantity: '1 Liter Bottle',
+    reviews: '4.2 (45 Reviews)',
+    category: 'Pesticide',
+  }
+];
+
+export const MOCK_POSTS = [
+  {
+    id: '1',
+    user: {
+      name: 'Suresh Patel',
+      avatar: 'https://i.pravatar.cc/150?img=12',
+      isVerified: true,
+    },
+    location: 'Ahmedabad, Gujarat',
+    time: '2 hours ago',
+    text: 'My wheat crop is growing well this season. Using the new organic fertilizer recommended here!',
+    image: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&q=80&w=800',
+    likes: 24,
+    comments: 5,
+    shares: 2,
+    cropTag: 'Wheat',
+  },
+  {
+    id: '2',
+    user: {
+      name: 'Dinesh Kumar',
+      avatar: 'https://i.pravatar.cc/150?img=13',
+      isVerified: false,
+    },
+    location: 'Surat, Gujarat',
+    time: '5 hours ago',
+    text: 'Does anyone know how to get rid of these pests? They are eating my tomato leaves.',
+    image: 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&q=80&w=800',
+    likes: 12,
+    comments: 18,
+    shares: 0,
+    cropTag: 'Tomatoes',
+  },
+  {
+    id: '3',
+    user: {
+      name: 'Agri Experts',
+      avatar: 'https://i.pravatar.cc/150?img=14',
+      isVerified: true,
+    },
+    location: 'Pune, Maharashtra',
+    time: '1 day ago',
+    text: 'Monsoon is approaching. Make sure to prepare your fields and secure proper drainage systems.',
+    image: null,
+    likes: 156,
+    comments: 23,
+    shares: 45,
+    cropTag: 'Weather Tips',
+  },
+];

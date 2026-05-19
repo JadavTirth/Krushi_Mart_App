@@ -1,0 +1,73 @@
+{
+  "tabs": {
+    "home": "होम",
+    "medicines": "स्टोर",
+    "profile": "प्रोफ़ाइल"
+  },
+  "home": {
+    "goodMorning": "सुप्रभात 👋",
+    "post": "पोस्ट"
+  },
+  "weather": {
+    "humidity": "नमी",
+    "rainChance": "बारिश की संभावना"
+  },
+  "post": {
+    "whatsHappening": "खेती का अपडेट साझा करें...",
+    "allPosts": "सभी पोस्ट",
+    "cropIssues": "फसल की समस्याएं",
+    "tips": "सुझाव",
+    "market": "बाज़ार",
+    "likes": "पसंद",
+    "comments": "टिप्पणियाँ",
+    "shares": "शेयर",
+    "like": "पसंद करें",
+    "comment": "टिप्पणी",
+    "share": "शेयर करें",
+    "createPost": "पोस्ट बनाएं",
+    "postAction": "पोस्ट",
+    "public": "सार्वजनिक",
+    "uploadPhoto": "खेत की फोटो अपलोड करें",
+    "uploadHelper": "अपनी फसल की समस्या या खेती का अपडेट दिखाएं",
+    "describeProblem": "अपनी खेती की समस्या या अपडेट का वर्णन करें...",
+    "exampleHelper": "उदाहरण: मेरी कपास की फसल के पत्ते पीले पड़ रहे हैं।",
+    "catCropIssue": "फसल की समस्या",
+    "catPestProblem": "कीट की समस्या",
+    "catFarmingTip": "खेती का सुझाव",
+    "catWeather": "मौसम",
+    "catMarketUpdate": "बाज़ार का अपडेट",
+    "saveDraft": "ड्राफ्ट सहेजें",
+    "postNow": "पोस्ट करें"
+  },
+  "comments": {
+    "title": "टिप्पणियाँ",
+    "writeComment": "एक टिप्पणी लिखें...",
+    "reply": "उत्तर दें",
+    "noCommentsYet": "अभी तक कोई टिप्पणी नहीं",
+    "beFirstToShare": "अपने विचार साझा करने वाले पहले व्यक्ति बनें"
+  },
+  "notifications": {
+    "title": "सूचनाएं",
+    "new": "नया",
+    "earlier": "पहले का",
+    "empty": "अभी तक कोई सूचना नहीं।"
+  },
+  "medicine": {
+    "searchPlaceholder": "दवा या बीमारी से खोजें...",
+    "all": "सभी",
+    "fertilizer": "उर्वरक",
+    "pesticide": "कीटनाशक",
+    "fungicide": "फफूंदनाशक",
+    "seeds": "बीज",
+    "fullDescription": "पूरा विवरण",
+    "howToUse": "उपयोग कैसे करें",
+    "safetyWarnings": "सुरक्षा और चेतावनी",
+    "buyNow": "अभी खरीदें"
+  },
+  "profile": {
+    "myPosts": "मेरी पोस्ट",
+    "likedPosts": "पसंद की गई पोस्ट",
+    "savedPosts": "सहेजी गई पोस्ट",
+    "totalPosts": "कुल पोस्ट"
+  }
+}

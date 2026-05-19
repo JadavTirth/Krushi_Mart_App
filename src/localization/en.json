@@ -1,0 +1,88 @@
+{
+  "tabs": {
+    "home": "Home",
+    "medicines": "Store",
+    "profile": "Profile"
+  },
+  "home": {
+    "goodMorning": "Krushi Mart",
+    "post": "Post"
+  },
+  "weather": {
+    "humidity": "Humidity",
+    "rainChance": "Rain Chance"
+  },
+  "post": {
+    "whatsHappening": "Share farming update...",
+    "allPosts": "All Posts",
+    "cropIssues": "Crop Issues",
+    "tips": "Tips",
+    "market": "Market",
+    "likes": "Likes",
+    "comments": "Comments",
+    "shares": "Shares",
+    "like": "Like",
+    "comment": "Comment",
+    "share": "Share",
+    "createPost": "Create Post",
+    "postAction": "Post",
+    "public": "Public",
+    "uploadPhoto": "Upload Farm Photo",
+    "uploadHelper": "Show your crop issue or farming update",
+    "describeProblem": "Describe your farming problem or update...",
+    "exampleHelper": "Example: My cotton crop leaves are turning yellow.",
+    "catCropIssue": "Crop Issue",
+    "catPestProblem": "Pest Problem",
+    "catFarmingTip": "Farming Tip",
+    "catWeather": "Weather",
+    "catMarketUpdate": "Market Update",
+    "saveDraft": "Save Draft",
+    "postNow": "POST"
+  },
+  "comments": {
+    "title": "Comments",
+    "writeComment": "Write a comment...",
+    "reply": "Reply",
+    "noCommentsYet": "No comments yet",
+    "beFirstToShare": "Be the first to share your thoughts!"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "new": "New",
+    "earlier": "Earlier",
+    "empty": "No notifications yet."
+  },
+  "medicine": {
+    "searchPlaceholder": "Search by medicine or disease...",
+    "all": "All",
+    "fertilizer": "Fertilizer",
+    "pesticide": "Pesticide",
+    "fungicide": "Fungicide",
+    "seeds": "Seeds",
+    "fullDescription": "Full Description",
+    "howToUse": "How to Use",
+    "safetyWarnings": "Safety & Warnings",
+    "buyNow": "Buy Now"
+  },
+  "profile": {
+    "myPosts": "My Posts",
+    "savedPosts": "Saved Posts",
+    "totalPosts": "Total Posts",
+    "posts": "Posts",
+    "friends": "Friends",
+    "editProfile": "Edit Profile",
+    "addFriend": "Add Friend",
+    "loading": "Loading...",
+    "noPostsYet": "No Posts Yet",
+    "noPostsSub": "This farmer hasn't shared any updates.",
+    "farmersUpdates": "Farmer's Updates",
+    "yourPosts": "Your Posts",
+    "yourFriends": "Your Friends",
+    "defaultBio": "Helping farmers grow healthier crops 🌾",
+    "updateProfile": "✏ Update Your Profile",
+    "farmDetails": "Farm Details",
+    "location": "Location",
+    "farmingType": "Farming Type",
+    "cropsLabel": "Crops:"
+  }
+}
