@@ -33,7 +33,7 @@ export default function CategoryProductsScreen() {
     <View style={styles.emptyContainer}>
       <MaterialCommunityIcons name="basket-off-outline" size={64} color={colors.textSecondary} />
       <Text style={styles.emptyTitle}>No Products Found</Text>
-      <Text style={styles.emptySubtitle}>We currently don't have products in this category.</Text>
+      <Text style={styles.emptySubtitle}>We currently don&apos;t have products in this category.</Text>
     </View>
   );
 

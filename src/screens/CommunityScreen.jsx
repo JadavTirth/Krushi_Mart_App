@@ -1,64 +1,37 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import colors from '../utils/colors';
 import ScreenContainer from '../components/common/ScreenContainer';
 import AnimatedInput from '../components/common/AnimatedInput';
-
-const MOCK_FARMERS = [
-  {
-    id: '1',
-    name: 'Ramesh Patel',
-    avatar: 'https://i.pravatar.cc/150?img=11',
-    location: 'Ahmedabad, Gujarat',
-    farmType: 'Organic',
-    crops: ['Cotton', 'Wheat'],
-    bio: 'Farming organically for 15 years. Happy to help young farmers.',
-    verified: true,
-  },
-  {
-    id: '2',
-    name: 'Suresh Kumar',
-    avatar: 'https://i.pravatar.cc/150?img=12',
-    location: 'Rajkot, Gujarat',
-    farmType: 'Traditional',
-    crops: ['Groundnut', 'Cotton'],
-    bio: 'Specializing in monsoon crops and traditional farming methods.',
-    verified: false,
-  },
-  {
-    id: '3',
-    name: 'Amit Bhai',
-    avatar: 'https://i.pravatar.cc/150?img=14',
-    location: 'Surat, Gujarat',
-    farmType: 'Modern',
-    crops: ['Vegetable', 'Dairy'],
-    bio: 'Using modern tech for better yield. Let us connect!',
-    verified: true,
-  },
-  {
-    id: '4',
-    name: 'Dilip Singh',
-    avatar: 'https://i.pravatar.cc/150?img=59',
-    location: 'Bhavnagar, Gujarat',
-    farmType: 'Organic',
-    crops: ['Mango', 'Vegetable'],
-    bio: 'Looking for organic compost suppliers. Sharing tips on mango farming.',
-    verified: false,
-  },
-];
+import { fetchFarmers } from '../services/profileService';
 
 export default function CommunityScreen() {
-  const { t } = useTranslation();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [farmers, setFarmers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredFarmers = MOCK_FARMERS.filter(farmer => {
-    return farmer.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-           farmer.location.toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  useEffect(() => {
+    const loadFarmers = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchFarmers(searchQuery);
+        setFarmers(data);
+      } catch (err) {
+        console.error('Failed to load farmers list:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      loadFarmers();
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const headerElement = (
     <View style={styles.headerSection}>
@@ -75,49 +48,70 @@ export default function CommunityScreen() {
     </View>
   );
 
-  const renderFarmerCard = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.card}
-      activeOpacity={0.9}
-      onPress={() => router.push(`/farmer/${item.id}`)}
-    >
-      <View style={styles.cardTopRow}>
-        <Image source={{ uri: item.avatar }} style={styles.avatar} />
-        <View style={styles.infoContainer}>
-          <View style={styles.nameRow}>
-            <Text style={styles.name}>{item.name}</Text>
-            {item.verified && (
-              <MaterialCommunityIcons name="check-decagram" size={16} color={colors.primary} style={styles.verifiedIcon} />
-            )}
+  const renderFarmerCard = ({ item }) => {
+    const locationStr = [item.village, item.state].filter(Boolean).join(', ') || item.district || 'Unknown Location';
+    
+    return (
+      <TouchableOpacity 
+        style={styles.card}
+        activeOpacity={0.9}
+        onPress={() => router.push(`/farmer/${item.id}`)}
+      >
+        <View style={styles.cardTopRow}>
+          <Image source={{ uri: item.avatar_url || 'https://i.pravatar.cc/150' }} style={styles.avatar} />
+          <View style={styles.infoContainer}>
+            <View style={styles.nameRow}>
+              <Text style={styles.name}>{item.name}</Text>
+              {item.is_verified && (
+                <MaterialCommunityIcons name="check-decagram" size={16} color={colors.primary} style={styles.verifiedIcon} />
+              )}
+            </View>
+            <Text style={styles.location}>📍 {locationStr}</Text>
+            <Text style={styles.farmType}>🌿 {item.farm_type || 'General Farming'}</Text>
           </View>
-          <Text style={styles.location}>📍 {item.location}</Text>
-          <Text style={styles.farmType}>🌿 {item.farmType}</Text>
+          <TouchableOpacity style={styles.addFriendButton} activeOpacity={0.7}>
+            <MaterialCommunityIcons name="account-plus-outline" size={18} color="#FFFFFF" />
+            <Text style={styles.addFriendText}>Add</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.addFriendButton} activeOpacity={0.7}>
-          <MaterialCommunityIcons name="account-plus-outline" size={18} color="#FFFFFF" />
-          <Text style={styles.addFriendText}>Add</Text>
-        </TouchableOpacity>
-      </View>
-      
-      <Text style={styles.bio}>{item.bio}</Text>
-      
-      <View style={styles.cardBottomRow}>
-        <View style={styles.cropsContainer}>
-          {item.crops.map((crop, idx) => (
-            <Text key={idx} style={styles.cropText}>🌾 {crop}</Text>
-          ))}
+        
+        {item.bio && <Text style={styles.bio}>{item.bio}</Text>}
+        
+        <View style={styles.cardBottomRow}>
+          <View style={styles.cropsContainer}>
+            {(item.primary_crops || []).map((crop, idx) => (
+              <Text key={idx} style={styles.cropText}>🌾 {crop}</Text>
+            ))}
+          </View>
         </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderEmptyState = () => {
+    if (loading) {
+      return (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      );
+    }
+    return (
+      <View style={styles.centerContainer}>
+        <MaterialCommunityIcons name="account-search-outline" size={48} color={colors.textLight} />
+        <Text style={styles.emptyText}>No farmers found matching search query</Text>
       </View>
-    </TouchableOpacity>
-  );
+    );
+  };
 
   return (
     <ScreenContainer>
       <FlatList
-        data={filteredFarmers}
+        data={farmers}
         keyExtractor={item => item.id}
         renderItem={renderFarmerCard}
         ListHeaderComponent={headerElement}
+        ListEmptyComponent={renderEmptyState}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
@@ -241,5 +235,16 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+  centerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    gap: 12,
+  },
+  emptyText: {
+    color: colors.textSecondary,
+    fontSize: 16,
+    fontWeight: '500',
   },
 });

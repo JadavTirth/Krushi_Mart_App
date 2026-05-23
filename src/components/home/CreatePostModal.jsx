@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import colors from '../../utils/colors';
-import { MOCK_USER } from '../../constants/data';
+import { useAuthStore } from '../../store/authStore';
 import PhotoPickerModal from '../common/PhotoPickerModal';
 
-export default function CreatePostModal({ visible, onClose, initialPhoto }) {
+export default function CreatePostModal({ visible, onClose, initialPhoto, onSubmit }) {
   const { t } = useTranslation();
+  const { user: currentUser } = useAuthStore();
   const [postText, setPostText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedPhoto, setSelectedPhoto] = useState(initialPhoto || null);
   const [photoPickerVisible, setPhotoPickerVisible] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   React.useEffect(() => {
     if (visible) {
@@ -20,23 +22,40 @@ export default function CreatePostModal({ visible, onClose, initialPhoto }) {
       setPostText('');
       setSelectedCategory(null);
       setSelectedPhoto(null);
+      setIsSubmitting(false);
     }
   }, [visible, initialPhoto]);
 
   const categories = [
-    { id: 'crop', key: 'post.catCropIssue', icon: '🌾' },
-    { id: 'pest', key: 'post.catPestProblem', icon: '🐛' },
-    { id: 'tip', key: 'post.catFarmingTip', icon: '💡' },
-    { id: 'weather', key: 'post.catWeather', icon: '🌧' },
-    { id: 'market', key: 'post.catMarketUpdate', icon: '📍' },
+    { id: 'crop', key: 'post.catCropIssue', icon: '🌾', label: 'Crop Issue' },
+    { id: 'pest', key: 'post.catPestProblem', icon: '🐛', label: 'Pest Problem' },
+    { id: 'tip', key: 'post.catFarmingTip', icon: '💡', label: 'Farming Tip' },
+    { id: 'weather', key: 'post.catWeather', icon: '🌧', label: 'Weather' },
+    { id: 'market', key: 'post.catMarketUpdate', icon: '📍', label: 'Market Update' },
   ];
 
-  const handlePost = () => {
-    console.log("Posting:", postText, "Category:", selectedCategory);
-    setPostText('');
-    setSelectedCategory(null);
-    onClose();
+  const handlePost = async () => {
+    if (!postText.trim() || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      const activeCategory = categories.find(c => c.id === selectedCategory);
+      const categoryDbValue = activeCategory ? activeCategory.id : 'crop';
+      const cropTag = activeCategory ? t(activeCategory.key) : 'Farming';
+
+      if (onSubmit) {
+        await onSubmit(postText.trim(), selectedPhoto, categoryDbValue, cropTag);
+      }
+      onClose();
+    } catch (error) {
+      console.error('Error submitting post in CreatePostModal:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  const currentAvatar = currentUser?.avatar_url || 'https://i.pravatar.cc/150?img=11';
+  const currentName = currentUser?.name || 'Demo Farmer';
 
   return (
     <Modal
@@ -47,7 +66,7 @@ export default function CreatePostModal({ visible, onClose, initialPhoto }) {
     >
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} style={styles.iconButton} activeOpacity={0.7}>
+          <TouchableOpacity onPress={onClose} style={styles.iconButton} activeOpacity={0.7} disabled={isSubmitting}>
             <MaterialCommunityIcons name="close" size={32} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('post.createPost')}</Text>
@@ -60,9 +79,9 @@ export default function CreatePostModal({ visible, onClose, initialPhoto }) {
         >
           <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             <View style={styles.userInfo}>
-              <Image source={{ uri: MOCK_USER.avatar }} style={styles.avatar} />
+              <Image source={{ uri: currentAvatar }} style={styles.avatar} />
               <View>
-                <Text style={styles.userName}>{MOCK_USER.name}</Text>
+                <Text style={styles.userName}>{currentName}</Text>
                 <View style={styles.privacyPill}>
                   <MaterialCommunityIcons name="earth" size={16} color={colors.textSecondary} />
                   <Text style={styles.privacyText}>{t('post.public')}</Text>
@@ -77,12 +96,18 @@ export default function CreatePostModal({ visible, onClose, initialPhoto }) {
                   style={styles.removeImageBtn} 
                   onPress={() => setSelectedPhoto(null)}
                   activeOpacity={0.8}
+                  disabled={isSubmitting}
                 >
                   <MaterialCommunityIcons name="close-circle" size={36} color={colors.surface} />
                 </TouchableOpacity>
               </View>
             ) : (
-              <TouchableOpacity style={styles.uploadArea} activeOpacity={0.8} onPress={() => setPhotoPickerVisible(true)}>
+              <TouchableOpacity 
+                style={styles.uploadArea} 
+                activeOpacity={0.8} 
+                onPress={() => setPhotoPickerVisible(true)}
+                disabled={isSubmitting}
+              >
                 <MaterialCommunityIcons name="camera-plus" size={48} color={colors.primary} />
                 <Text style={styles.uploadTitle}>{t('post.uploadPhoto')}</Text>
                 <Text style={styles.uploadHelper}>{t('post.uploadHelper')}</Text>
@@ -98,6 +123,7 @@ export default function CreatePostModal({ visible, onClose, initialPhoto }) {
                 value={postText}
                 onChangeText={setPostText}
                 textAlignVertical="top"
+                editable={!isSubmitting}
               />
               <Text style={styles.inputHelper}>{t('post.exampleHelper')}</Text>
             </View>
@@ -111,6 +137,7 @@ export default function CreatePostModal({ visible, onClose, initialPhoto }) {
                     style={[styles.categoryChip, isActive && styles.activeCategoryChip]}
                     onPress={() => setSelectedCategory(cat.id)}
                     activeOpacity={0.7}
+                    disabled={isSubmitting}
                   >
                     <Text style={styles.categoryEmoji}>{cat.icon}</Text>
                     <Text style={[styles.categoryText, isActive && styles.activeCategoryText]}>
@@ -124,17 +151,21 @@ export default function CreatePostModal({ visible, onClose, initialPhoto }) {
           </ScrollView>
 
           <View style={styles.bottomToolbar}>
-            <TouchableOpacity style={styles.draftButton} activeOpacity={0.7} onPress={onClose}>
+            <TouchableOpacity style={styles.draftButton} activeOpacity={0.7} onPress={onClose} disabled={isSubmitting}>
               <Text style={styles.draftButtonText}>{t('post.saveDraft')}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
-              style={[styles.postButton, !postText.trim() && styles.postButtonDisabled]}
-              disabled={!postText.trim()}
+              style={[styles.postButton, (!postText.trim() || isSubmitting) && styles.postButtonDisabled]}
+              disabled={!postText.trim() || isSubmitting}
               onPress={handlePost}
               activeOpacity={0.8}
             >
-              <Text style={styles.postButtonText}>{t('post.postNow')}</Text>
+              {isSubmitting ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.postButtonText}>{t('post.postNow')}</Text>
+              )}
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>

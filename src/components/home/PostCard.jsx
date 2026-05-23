@@ -1,20 +1,16 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View, Share } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View, Share } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import colors from '../../utils/colors';
 
-const { width } = Dimensions.get('window');
-
 export default function PostCard({ post, onLike, onComment, onCommentPress, onShare }) {
   const { t } = useTranslation();
-  const router = useRouter();
   const handleComment = onCommentPress || onComment;
 
-  const [liked, setLiked] = useState(false);
+  const liked = post.liked;
   const [isSaved, setIsSaved] = useState(false);
   const scale = useSharedValue(1);
 
@@ -25,7 +21,6 @@ export default function PostCard({ post, onLike, onComment, onCommentPress, onSh
   });
 
   const handleLikePress = () => {
-    setLiked(!liked);
     scale.value = withSequence(
       withSpring(1.5, { damping: 2, stiffness: 150 }),
       withSpring(1, { damping: 2, stiffness: 150 })
@@ -150,7 +145,7 @@ export default function PostCard({ post, onLike, onComment, onCommentPress, onSh
       {/* 4. Engagement Stats Section */}
       <View style={styles.statsContainer}>
         <Text style={styles.statsText}>
-          {liked ? post.likes + 1 : post.likes} {t('post.likes')} • {post.comments} {t('post.comments')} {post.shares !== undefined ? `• ${post.shares} ${t('post.shares')}` : ''}
+          {post.likes} {t('post.likes')} • {post.comments} {t('post.comments')} {post.shares !== undefined ? `• ${post.shares} ${t('post.shares')}` : ''}
         </Text>
       </View>
 

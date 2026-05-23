@@ -1,9 +1,8 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
   FlatList,
   Platform,
   RefreshControl,
@@ -17,66 +16,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import PostCard from '../../src/components/home/PostCard';
 import PublicProfileHeader from '../../src/components/profile/PublicProfileHeader';
+import CommentModal from '../../src/components/home/CommentModal';
 import colors from '../../src/utils/colors';
-
-// Simulated API Calls
-const fetchFarmerProfile = async (id) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        id,
-        farmerId: `K-${id.substring(0, 4).toUpperCase()}`,
-        name: 'Ramesh Kumar',
-        location: 'Pune, Maharashtra',
-        avatar: 'https://images.unsplash.com/photo-1595859702816-793dbedbc62b?auto=format&fit=crop&q=80&w=200',
-        bio: 'Passionate organic farmer with 10+ years of experience. Believes in sustainable agriculture and helping fellow farmers.',
-        categories: ['Organic', 'Wheat', 'Dairy'],
-        postsCount: 12,
-        friendsCount: 145,
-      });
-    }, 1000);
-  });
-};
-
-const fetchFarmerPosts = async (id) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        {
-          id: 'p1',
-          user: {
-            name: 'Ramesh Kumar',
-            avatar: 'https://images.unsplash.com/photo-1595859702816-793dbedbc62b?auto=format&fit=crop&q=80&w=200',
-            isVerified: true,
-          },
-          location: 'Pune, Maharashtra',
-          time: '2 hours ago',
-          cropTag: 'Wheat Harvesting',
-          text: 'Started the wheat harvest today! The yield looks promising this season despite the early rains. Taking care of moisture levels.',
-          image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&q=80&w=600',
-          likes: 245,
-          comments: 42,
-          shares: 12,
-        },
-        {
-          id: 'p2',
-          user: {
-            name: 'Ramesh Kumar',
-            avatar: 'https://images.unsplash.com/photo-1595859702816-793dbedbc62b?auto=format&fit=crop&q=80&w=200',
-            isVerified: true,
-          },
-          location: 'Pune, Maharashtra',
-          time: '2 days ago',
-          cropTag: 'Organic Fertilizer',
-          text: 'Prepared a fresh batch of Jeevamrutha for the cotton fields. Natural farming is the way to go for long-term soil health. 🌱',
-          likes: 189,
-          comments: 24,
-          shares: 8,
-        }
-      ]);
-    }, 1200);
-  });
-};
+import useProfile from '../../src/hooks/useProfile';
 
 export default function FarmerProfileScreen() {
   const { id } = useLocalSearchParams();
@@ -85,39 +27,29 @@ export default function FarmerProfileScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
 
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [profile, setProfile] = useState(null);
-  const [posts, setPosts] = useState([]);
+  const [selectedPostForComment, setSelectedPostForComment] = useState(null);
+
+  const { 
+    profile, 
+    userPosts, 
+    loadingProfile, 
+    handleLike,
+    refreshProfile,
+    refreshUserPosts 
+  } = useProfile(id);
 
   const isWeb = Platform.OS === 'web';
   // If the viewport is wide enough (web/tablet), we constrain the content width
   const contentWidth = isWeb && width > 768 ? 600 : '100%';
 
-  const loadData = async () => {
-    try {
-      const [profileData, postsData] = await Promise.all([
-        fetchFarmerProfile(id || 'default'),
-        fetchFarmerPosts(id || 'default')
-      ]);
-      setProfile(profileData);
-      setPosts(postsData);
-    } catch (error) {
-      console.error('Error loading profile:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, [id]);
+  const loading = loadingProfile && !profile;
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadData();
+    await Promise.all([refreshProfile(), refreshUserPosts()]);
     setRefreshing(false);
-  }, [id]);
+  }, [refreshProfile, refreshUserPosts]);
 
   const handleBack = () => {
     if (router.canGoBack()) {
@@ -126,6 +58,18 @@ export default function FarmerProfileScreen() {
       router.replace('/(tabs)');
     }
   };
+
+  const formattedFarmer = profile ? {
+    id: profile.id,
+    farmerId: `K-${profile.id.substring(0, 4).toUpperCase()}`,
+    name: profile.name,
+    avatar: profile.avatar_url || 'https://i.pravatar.cc/150?img=11',
+    location: [profile.village, profile.state].filter(Boolean).join(', ') || profile.district || 'Gujarat, India',
+    postsCount: userPosts.length,
+    friendsCount: 0,
+    bio: profile.bio || 'Helping farmers grow healthier crops 🌾',
+    categories: profile.primary_crops || [],
+  } : null;
 
   const renderTopBar = () => (
     <View style={[styles.topBar, { paddingTop: insets.top || 16 }]}>
@@ -152,11 +96,11 @@ export default function FarmerProfileScreen() {
   );
 
   const renderHeader = () => {
-    if (!profile) return null;
+    if (!formattedFarmer) return null;
     return (
       <View style={styles.headerWrapper}>
         <PublicProfileHeader
-          farmer={profile}
+          farmer={formattedFarmer}
           isOwnProfile={false}
           onFollowPress={() => {}}
         />
@@ -213,11 +157,15 @@ export default function FarmerProfileScreen() {
       
       <View style={styles.listWrapper}>
         <FlatList
-          data={posts}
+          data={userPosts}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View style={{ width: contentWidth, alignSelf: 'center', marginBottom: 12 }}>
-              <PostCard post={item} />
+              <PostCard 
+                post={item} 
+                onLike={handleLike}
+                onCommentPress={() => setSelectedPostForComment(item)}
+              />
             </View>
           )}
           ListHeaderComponent={
@@ -236,6 +184,12 @@ export default function FarmerProfileScreen() {
           }
         />
       </View>
+
+      <CommentModal 
+        visible={!!selectedPostForComment}
+        post={selectedPostForComment}
+        onClose={() => setSelectedPostForComment(null)}
+      />
     </View>
   );
 }

@@ -3,8 +3,9 @@ import { useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '../store/authStore';
+import useFeed from '../hooks/useFeed';
 import FloatingButton from '../components/common/FloatingButton';
 import ScreenContainer from '../components/common/ScreenContainer';
 import CommentModal from '../components/home/CommentModal';
@@ -15,13 +16,14 @@ import PhotoUploadAction from '../components/home/PhotoUploadAction';
 import FarmDetailsAction from '../components/home/FarmDetailsAction';
 import FarmDetailsModal from '../components/home/FarmDetailsModal';
 import FarmDetailsCard from '../components/home/FarmDetailsCard';
-import { MOCK_POSTS, MOCK_WEATHER } from '../constants/data';
+import { MOCK_WEATHER } from '../constants/data';
 import colors from '../utils/colors';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { logout } = useAuthStore();
+  const { posts, loading, refreshing, handleRefresh, handleLike, handleCreatePost } = useFeed();
   const [selectedPostForComment, setSelectedPostForComment] = useState(null);
   const [createPostModalVisible, setCreatePostModalVisible] = useState(false);
   const [createPostInitialPhoto, setCreatePostInitialPhoto] = useState(null);
@@ -77,7 +79,7 @@ export default function HomeScreen() {
           >
             <MaterialCommunityIcons name="logout" size={26} color="#EF5350" />
           </TouchableOpacity>
-
+ 
           <TouchableOpacity
             style={styles.notificationBtn}
             activeOpacity={0.7}
@@ -109,18 +111,38 @@ export default function HomeScreen() {
     </View>
   );
 
+  const renderEmptyState = () => {
+    if (loading) {
+      return (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      );
+    }
+    return (
+      <View style={styles.centerContainer}>
+        <MaterialCommunityIcons name="post-outline" size={48} color={colors.textLight} />
+        <Text style={styles.emptyText}>{t('home.noPostsYet') || 'No posts available'}</Text>
+      </View>
+    );
+  };
+
   return (
     <ScreenContainer>
       <Animated.FlatList
-        data={MOCK_POSTS}
+        data={posts}
         keyExtractor={(item) => item.id}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
         renderItem={({ item }) => (
           <PostCard
             post={item}
+            onLike={handleLike}
             onCommentPress={() => setSelectedPostForComment(item)}
           />
         )}
         ListHeaderComponent={renderHeader}
+        ListEmptyComponent={renderEmptyState}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
@@ -149,6 +171,7 @@ export default function HomeScreen() {
       <CreatePostModal
         visible={createPostModalVisible}
         initialPhoto={createPostInitialPhoto}
+        onSubmit={handleCreatePost}
         onClose={() => {
           setCreatePostModalVisible(false);
           setCreatePostInitialPhoto(null);
@@ -228,5 +251,16 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '800',
+  },
+  centerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    gap: 12,
+  },
+  emptyText: {
+    color: colors.textSecondary,
+    fontSize: 16,
+    fontWeight: '500',
   },
 });

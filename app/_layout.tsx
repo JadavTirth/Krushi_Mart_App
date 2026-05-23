@@ -26,7 +26,7 @@ function RootNavigation() {
     } else if (isLoggedIn && inAuthGroup) {
       router.replace('/(tabs)');
     }
-  }, [isLoggedIn, hasSeenIntro, isLoading, segments]);
+  }, [isLoggedIn, hasSeenIntro, isLoading, segments, router]);
 
   if (isLoading) {
     return (

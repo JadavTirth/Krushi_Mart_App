@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Image, Dimensions } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import colors from '../../utils/colors';
-
-const { width } = Dimensions.get('window');
 
 export default function MedicineCard({ medicine, onPress }) {
   const [imageError, setImageError] = useState(false);

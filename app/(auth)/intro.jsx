@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
 import { useTranslation } from 'react-i18next';
 import colors from '../../src/utils/colors';
-
-const { width } = Dimensions.get('window');
 
 const LANGUAGES = [
   { code: 'en', label: 'English', native: 'English' },

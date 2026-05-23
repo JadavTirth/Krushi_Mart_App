@@ -93,7 +93,7 @@ export default function OTPScreen() {
         </TouchableOpacity>
 
         <View style={styles.resendContainer}>
-          <Text style={styles.resendText}>Didn't receive the code? </Text>
+          <Text style={styles.resendText}>Didn&apos;t receive the code? </Text>
           {timer > 0 ? (
             <Text style={styles.timerText}>Resend in {timer}s</Text>
           ) : (

@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useTranslation } from 'react-i18next';
 import colors from '../../utils/colors';
+import PhotoPickerModal from '../common/PhotoPickerModal';
 
 export default function EditProfileModal({ visible, onClose, user, onSave }) {
-  const { t } = useTranslation();
 
   // Local state for form
   const [formData, setFormData] = useState({
@@ -22,13 +21,47 @@ export default function EditProfileModal({ visible, onClose, user, onSave }) {
     bio: user?.bio || '',
   });
 
+  const [avatarUri, setAvatarUri] = useState(user?.avatar || null);
+  const [photoPickerVisible, setPhotoPickerVisible] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  React.useEffect(() => {
+    if (visible && user) {
+      setFormData({
+        name: user.name || '',
+        phone: user.phone || '',
+        email: user.email || '',
+        village: user.village || '',
+        district: user.district || '',
+        state: user.state || '',
+        farmSize: user.farmSize || '',
+        primaryCrops: user.primaryCrops || '',
+        currentCrops: user.currentCrops || '',
+        medicinesUsed: user.medicinesUsed || '',
+        bio: user.bio || '',
+      });
+      setAvatarUri(user.avatar || null);
+    }
+  }, [visible, user]);
+
   const handleChange = (key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSave = () => {
-    if (onSave) onSave(formData);
-    onClose();
+  const handleSave = async () => {
+    if (onSave) {
+      setIsSaving(true);
+      try {
+        await onSave({ ...formData, avatarUri });
+        onClose();
+      } catch (error) {
+        console.error('Failed to save profile:', error);
+      } finally {
+        setIsSaving(false);
+      }
+    } else {
+      onClose();
+    }
   };
 
   if (!visible) return null;
@@ -46,9 +79,13 @@ export default function EditProfileModal({ visible, onClose, user, onSave }) {
             <MaterialCommunityIcons name="close" size={32} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Edit Profile</Text>
-          <TouchableOpacity onPress={handleSave} style={styles.saveButton} activeOpacity={0.7}>
-            <Text style={styles.saveButtonText}>Save</Text>
-          </TouchableOpacity>
+          {isSaving ? (
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginRight: 8 }} />
+          ) : (
+            <TouchableOpacity onPress={handleSave} style={styles.saveButton} activeOpacity={0.7}>
+              <Text style={styles.saveButtonText}>Save</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <KeyboardAvoidingView
@@ -56,6 +93,31 @@ export default function EditProfileModal({ visible, onClose, user, onSave }) {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+
+            {/* Profile Photo Section */}
+            <View style={styles.photoSection}>
+              <TouchableOpacity
+                onPress={() => setPhotoPickerVisible(true)}
+                style={styles.avatarContainer}
+                activeOpacity={0.8}
+                disabled={isSaving}
+              >
+                <Image
+                  source={{ uri: avatarUri || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png' }}
+                  style={styles.avatarPreview}
+                />
+                <View style={styles.cameraIconContainer}>
+                  <MaterialCommunityIcons name="camera" size={18} color="#FFFFFF" />
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setPhotoPickerVisible(true)}
+                style={styles.changePhotoBtn}
+                disabled={isSaving}
+              >
+                <Text style={styles.changePhotoText}>Change Profile Photo</Text>
+              </TouchableOpacity>
+            </View>
 
             {/* Privacy Notice */}
             <View style={styles.privacyNotice}>
@@ -195,6 +257,13 @@ export default function EditProfileModal({ visible, onClose, user, onSave }) {
 
           </ScrollView>
         </KeyboardAvoidingView>
+
+        <PhotoPickerModal
+          visible={photoPickerVisible}
+          onClose={() => setPhotoPickerVisible(false)}
+          onPhotoSelected={(uri) => setAvatarUri(uri)}
+          isNested={true}
+        />
       </View>
     </Modal>
   );
@@ -282,5 +351,50 @@ const styles = StyleSheet.create({
   textArea: {
     minHeight: 120,
     paddingTop: 16,
+  },
+  photoSection: {
+    alignItems: 'center',
+    marginBottom: 24,
+    gap: 8,
+  },
+  avatarContainer: {
+    position: 'relative',
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
+  avatarPreview: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    backgroundColor: colors.divider,
+  },
+  cameraIconContainer: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: colors.primary,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  changePhotoBtn: {
+    paddingVertical: 4,
+  },
+  changePhotoText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.primary,
   },
 });

@@ -1,46 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, FlatList, Platform } from 'react-native';
+import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../../utils/colors';
-import { MOCK_USER } from '../../constants/data';
-
-// Mock Comments Data for Preview
-const DEMO_COMMENTS = [
-  {
-    id: 'c1',
-    user: { name: 'Suresh Patel', avatar: 'https://i.pravatar.cc/150?img=12' },
-    time: '2h',
-    text: 'This is incredibly helpful. I was struggling with the exact same issue last week!',
-    likes: 14,
-    replies: [
-      {
-        id: 'r1',
-        user: { name: 'Amit Bhai', avatar: 'https://i.pravatar.cc/150?img=59' },
-        time: '1h',
-        text: 'Did you use the organic fertilizer method?',
-        likes: 2,
-      }
-    ]
-  },
-  {
-    id: 'c2',
-    user: { name: 'Raju Sharma', avatar: 'https://i.pravatar.cc/150?img=33' },
-    time: '5h',
-    text: 'Great advice. Will definitely try this technique for my tomato crops.',
-    likes: 8,
-    replies: []
-  },
-  {
-    id: 'c3',
-    user: { name: 'Agri Experts', avatar: 'https://i.pravatar.cc/150?img=14' },
-    time: '1d',
-    text: 'Make sure the soil moisture is checked before applying anything.',
-    likes: 45,
-    replies: []
-  }
-];
+import { useAuthStore } from '../../store/authStore';
+import useComments from '../../hooks/useComments';
 
 const CommentItem = ({ comment, isReply = false }) => {
   const { t } = useTranslation();
@@ -77,7 +42,24 @@ const CommentItem = ({ comment, isReply = false }) => {
 export default function CommentBox({ post }) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { user: currentUser } = useAuthStore();
   const [inputText, setInputText] = useState('');
+  const [isSending, setIsSending] = useState(false);
+
+  const { comments, loading, handleAddComment } = useComments(post?.id);
+
+  const handleSend = async () => {
+    if (!inputText.trim() || isSending) return;
+    setIsSending(true);
+    try {
+      await handleAddComment(inputText.trim());
+      setInputText('');
+    } catch (error) {
+      console.error('Failed to add comment in CommentBox:', error);
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   const renderHeader = () => {
     if (!post) return null;
@@ -96,19 +78,30 @@ export default function CommentBox({ post }) {
     );
   };
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <MaterialCommunityIcons name="comment-text-outline" size={48} color={colors.divider} />
-      <Text style={styles.emptyText}>{t('comments.noCommentsYet')}</Text>
-      <Text style={styles.emptySubText}>{t('comments.beFirstToShare')}</Text>
-    </View>
-  );
+  const renderEmptyState = () => {
+    if (loading) {
+      return (
+        <View style={styles.emptyContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      );
+    }
+    return (
+      <View style={styles.emptyContainer}>
+        <MaterialCommunityIcons name="comment-text-outline" size={48} color={colors.divider} />
+        <Text style={styles.emptyText}>{t('comments.noCommentsYet')}</Text>
+        <Text style={styles.emptySubText}>{t('comments.beFirstToShare')}</Text>
+      </View>
+    );
+  };
+
+  const currentAvatar = currentUser?.avatar_url || 'https://i.pravatar.cc/150?img=11';
 
   return (
     <View style={styles.container}>
       {/* 2. Comments List UI */}
       <FlatList
-        data={DEMO_COMMENTS}
+        data={comments}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
@@ -130,7 +123,7 @@ export default function CommentBox({ post }) {
 
       {/* 1. Bottom Input Section */}
       <View style={[styles.inputSection, { paddingBottom: Math.max(insets.bottom + 10, 16) }]}>
-        <Image source={{ uri: MOCK_USER.avatar }} style={styles.inputAvatar} />
+        <Image source={{ uri: currentAvatar }} style={styles.inputAvatar} />
         <View style={styles.inputWrapper}>
           <TextInput
             style={styles.textInput}
@@ -139,16 +132,22 @@ export default function CommentBox({ post }) {
             value={inputText}
             onChangeText={setInputText}
             multiline
+            editable={!isSending}
           />
           <TouchableOpacity 
-            style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
-            disabled={!inputText.trim()}
+            style={[styles.sendButton, (!inputText.trim() || isSending) && styles.sendButtonDisabled]}
+            disabled={!inputText.trim() || isSending}
+            onPress={handleSend}
           >
-            <MaterialCommunityIcons 
-              name="send" 
-              size={20} 
-              color={inputText.trim() ? '#FFFFFF' : colors.textLight} 
-            />
+            {isSending ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <MaterialCommunityIcons 
+                name="send" 
+                size={20} 
+                color={inputText.trim() ? '#FFFFFF' : colors.textLight} 
+              />
+            )}
           </TouchableOpacity>
         </View>
       </View>
