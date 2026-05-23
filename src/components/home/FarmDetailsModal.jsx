@@ -1,16 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Image, Platform, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import colors from '../../utils/colors';
 
-export default function FarmDetailsModal({ visible, onClose, onSubmit }) {
+export default function FarmDetailsModal({ visible, onClose, onSubmit, initialDetails }) {
   const [image, setImage] = useState(null);
   const [cropName, setCropName] = useState('');
   const [area, setArea] = useState('');
   const [soilType, setSoilType] = useState('');
   const [waterSource, setWaterSource] = useState('');
   const [description, setDescription] = useState('');
+
+  useEffect(() => {
+    if (visible) {
+      if (initialDetails) {
+        setImage(initialDetails.image || null);
+        setCropName(initialDetails.cropName || '');
+        setArea(initialDetails.area || '');
+        setSoilType(initialDetails.soilType || '');
+        setWaterSource(initialDetails.waterSource || '');
+        setDescription(initialDetails.description || '');
+      } else {
+        setImage(null);
+        setCropName('');
+        setArea('');
+        setSoilType('');
+        setWaterSource('');
+        setDescription('');
+      }
+    }
+  }, [visible, initialDetails]);
 
   const pickImageFromCamera = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -50,7 +70,7 @@ export default function FarmDetailsModal({ visible, onClose, onSubmit }) {
     if (!cropName || !area) return;
     
     onSubmit({
-      id: Date.now().toString(),
+      id: initialDetails?.id || Date.now().toString(),
       image,
       cropName,
       area,
@@ -73,7 +93,7 @@ export default function FarmDetailsModal({ visible, onClose, onSubmit }) {
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Add Farm Details</Text>
+            <Text style={styles.headerTitle}>{initialDetails ? 'Edit Farm Details' : 'Add Farm Details'}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
               <MaterialCommunityIcons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
@@ -146,7 +166,7 @@ export default function FarmDetailsModal({ visible, onClose, onSubmit }) {
 
           <View style={styles.footer}>
             <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} activeOpacity={0.8}>
-              <Text style={styles.submitBtnText}>Submit Details</Text>
+              <Text style={styles.submitBtnText}>{initialDetails ? 'Update Details' : 'Submit Details'}</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -13,9 +13,8 @@ import CreatePostModal from '../components/home/CreatePostModal';
 import PostCard from '../components/home/PostCard';
 import WeatherCard from '../components/home/WeatherCard';
 import PhotoUploadAction from '../components/home/PhotoUploadAction';
-import FarmDetailsAction from '../components/home/FarmDetailsAction';
 import FarmDetailsModal from '../components/home/FarmDetailsModal';
-import FarmDetailsCard from '../components/home/FarmDetailsCard';
+import FarmSlider from '../components/home/FarmSlider';
 import { MOCK_WEATHER } from '../constants/data';
 import colors from '../utils/colors';
 
@@ -29,6 +28,7 @@ export default function HomeScreen() {
   const [createPostInitialPhoto, setCreatePostInitialPhoto] = useState(null);
   const [farmDetailsModalVisible, setFarmDetailsModalVisible] = useState(false);
   const [farmDetailsList, setFarmDetailsList] = useState([]);
+  const [editingFarm, setEditingFarm] = useState(null);
   const scrollY = React.useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -47,9 +47,19 @@ export default function HomeScreen() {
 
   const handleFarmDetailsSubmit = async (newDetails) => {
     try {
-      const newList = [newDetails, ...farmDetailsList];
+      let newList;
+      if (editingFarm) {
+        // Update existing farm details
+        newList = farmDetailsList.map((farm) => 
+          farm.id === newDetails.id ? newDetails : farm
+        );
+      } else {
+        // Add new farm details
+        newList = [newDetails, ...farmDetailsList];
+      }
       setFarmDetailsList(newList);
       await AsyncStorage.setItem('@farm_details', JSON.stringify(newList));
+      setEditingFarm(null);
     } catch (e) {
       console.log("Failed to save farm details", e);
     }
@@ -98,16 +108,18 @@ export default function HomeScreen() {
         setCreatePostModalVisible(true);
       }} />
 
-      {/* Share Farm Details Action */}
-      <FarmDetailsAction 
-        onPress={() => setFarmDetailsModalVisible(true)} 
-        isUpdate={farmDetailsList.length > 0}
+      {/* Horizontal Farm Slider/Carousel */}
+      <FarmSlider 
+        farmDetailsList={farmDetailsList}
+        onAddFarmPress={() => {
+          setEditingFarm(null);
+          setFarmDetailsModalVisible(true);
+        }}
+        onEditFarmPress={(farm) => {
+          setEditingFarm(farm);
+          setFarmDetailsModalVisible(true);
+        }}
       />
-
-      {/* Render Farm Details Cards if any */}
-      {farmDetailsList.map((details) => (
-        <FarmDetailsCard key={details.id} details={details} />
-      ))}
     </View>
   );
 
@@ -180,7 +192,11 @@ export default function HomeScreen() {
 
       <FarmDetailsModal
         visible={farmDetailsModalVisible}
-        onClose={() => setFarmDetailsModalVisible(false)}
+        initialDetails={editingFarm}
+        onClose={() => {
+          setFarmDetailsModalVisible(false);
+          setEditingFarm(null);
+        }}
         onSubmit={handleFarmDetailsSubmit}
       />
     </ScreenContainer>
