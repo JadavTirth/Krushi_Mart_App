@@ -8,7 +8,7 @@ import PostCard from '../components/home/PostCard';
 import CommentModal from '../components/home/CommentModal';
 import ScreenContainer from '../components/common/ScreenContainer';
 import { useTranslation } from 'react-i18next';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useFocusEffect } from 'expo-router';
 import useProfile from '../hooks/useProfile';
 import { uploadProfileImage } from '../services/storageHelper';
 
@@ -28,10 +28,23 @@ export default function ProfileScreen() {
   const { 
     profile, 
     userPosts, 
+    savedPosts,
     loadingProfile, 
     loadingPosts, 
-    handleUpdateProfile 
+    loadingSavedPosts,
+    handleUpdateProfile,
+    handleLike,
+    handleSave,
+    refreshUserPosts,
+    refreshSavedPosts
   } = useProfile();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshUserPosts();
+      refreshSavedPosts();
+    }, [refreshUserPosts, refreshSavedPosts])
+  );
 
   React.useEffect(() => {
     if (tab && TAB_KEYS.find(t => t.id === tab)) {
@@ -43,13 +56,13 @@ export default function ProfileScreen() {
   const formattedUser = profile ? {
     name: profile.name,
     avatar: profile.avatar_url || 'https://i.pravatar.cc/150?img=11',
-    location: [profile.village, profile.state].filter(Boolean).join(', ') || profile.district || 'Gujarat, India',
+    location: [profile.village, profile.state].filter(Boolean).join(', ') || profile.district || '',
     totalPosts: userPosts.length,
     friends: 0,
     role: profile.farm_type ? `${profile.farm_type} Farmer` : 'Farmer',
     experience: profile.experience_years ? `${profile.experience_years} Years` : '',
-    farmType: profile.farm_type || 'General Farming',
-    bio: profile.bio || 'Helping farmers grow healthier crops 🌾',
+    farmType: profile.farm_type || '',
+    bio: profile.bio || '',
     crops: profile.primary_crops || [],
     phone: profile.phone,
     email: profile.email,
@@ -66,7 +79,6 @@ export default function ProfileScreen() {
     state: profile.state || '',
     farmSize: '',
     primaryCrops: Array.isArray(profile.primary_crops) ? profile.primary_crops.join(', ') : '',
-    currentCrops: Array.isArray(profile.current_crops) ? profile.current_crops.join(', ') : '',
     medicinesUsed: Array.isArray(profile.medicines_used) ? profile.medicines_used.join(', ') : '',
     bio: profile.bio || '',
   } : null;
@@ -95,9 +107,6 @@ export default function ProfileScreen() {
         primary_crops: typeof formData.primaryCrops === 'string' 
           ? formData.primaryCrops.split(',').map(c => c.trim()).filter(Boolean)
           : formData.primaryCrops,
-        current_crops: typeof formData.currentCrops === 'string'
-          ? formData.currentCrops.split(',').map(c => c.trim()).filter(Boolean)
-          : formData.currentCrops,
         medicines_used: typeof formData.medicinesUsed === 'string'
           ? formData.medicinesUsed.split(',').map(c => c.trim()).filter(Boolean)
           : formData.medicinesUsed,
@@ -135,7 +144,7 @@ export default function ProfileScreen() {
   );
 
   const renderEmptyState = () => {
-    if (loadingPosts) {
+    if (loadingPosts || loadingSavedPosts) {
       return (
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -161,7 +170,7 @@ export default function ProfileScreen() {
   }
 
   // Filter posts based on active tab
-  const displayPosts = activeTab === 'myPosts' ? userPosts : [];
+  const displayPosts = activeTab === 'myPosts' ? userPosts : savedPosts;
 
   return (
     <ScreenContainer>
@@ -171,6 +180,8 @@ export default function ProfileScreen() {
         renderItem={({ item }) => (
           <PostCard 
             post={item} 
+            onLike={handleLike}
+            onSave={handleSave}
             onCommentPress={() => {
               setSelectedPostForComment(item);
               setCommentModalVisible(true);

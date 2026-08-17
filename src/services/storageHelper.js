@@ -76,7 +76,24 @@ export const uploadProfileImage = async (userId, uri) => {
   
   try {
     const extension = uri.split('.').pop() || 'jpg';
-    const filename = `${userId}/profile.${extension}`;
+    
+    // 1. Clean up old profile images from user's directory to avoid bloating
+    try {
+      const { data: existingFiles } = await supabase.storage
+        .from('avatars')
+        .list(userId);
+
+      if (existingFiles && existingFiles.length > 0) {
+        const filesToRemove = existingFiles.map(file => `${userId}/${file.name}`);
+        await supabase.storage.from('avatars').remove(filesToRemove);
+      }
+    } catch (cleanError) {
+      console.warn('Could not clean old profile files from storage:', cleanError);
+    }
+    
+    // 2. Generate a unique filename using a timestamp to bust cache
+    const timestamp = Date.now();
+    const filename = `${userId}/profile-${timestamp}.${extension}`;
     
     // Read local file as ArrayBuffer
     const arrayBuffer = await getArrayBufferFromUri(uri);
@@ -86,7 +103,7 @@ export const uploadProfileImage = async (userId, uri) => {
       .from('avatars')
       .upload(filename, arrayBuffer, {
         contentType: `image/${extension}`,
-        cacheControl: '3600',
+        cacheControl: '0', // Disable caching for the new upload
         upsert: true,
       });
 

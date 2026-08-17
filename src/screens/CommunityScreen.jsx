@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import colors from '../utils/colors';
 import ScreenContainer from '../components/common/ScreenContainer';
 import AnimatedInput from '../components/common/AnimatedInput';
 import { fetchFarmers } from '../services/profileService';
+import { useAuthStore } from '../store/authStore';
+import { supabase } from '../lib/supabase';
 
 export default function CommunityScreen() {
   const router = useRouter();
+  const { user } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [farmers, setFarmers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,8 +20,33 @@ export default function CommunityScreen() {
     const loadFarmers = async () => {
       setLoading(true);
       try {
+        // 1. Fetch all farmers matching the search query
         const data = await fetchFarmers(searchQuery);
-        setFarmers(data);
+
+        // 2. Fetch connection relations to exclude existing friends
+        let friendIds = [];
+        if (user?.id) {
+          const { data: followersData, error: followersError } = await supabase
+            .from('followers')
+            .select('follower_id, following_id')
+            .or(`follower_id.eq.${user.id},following_id.eq.${user.id}`);
+
+          if (!followersError && followersData) {
+            friendIds = followersData.map(row => 
+              row.follower_id === user.id ? row.following_id : row.follower_id
+            );
+          } else if (followersError) {
+            console.warn('Error fetching followers list:', followersError.message);
+          }
+        }
+
+        // 3. Filter out:
+        // - Logged-in user themselves
+        // - Anyone who is already in their friend/connection list
+        const filteredFarmers = (data || []).filter(farmer => 
+          farmer.id !== user?.id && !friendIds.includes(farmer.id)
+        );
+        setFarmers(filteredFarmers);
       } catch (err) {
         console.error('Failed to load farmers list:', err);
       } finally {
@@ -31,7 +59,33 @@ export default function CommunityScreen() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, user?.id]);
+
+  const handleAddFriend = async (targetFarmerId, targetFarmerName) => {
+    if (!user?.id) {
+      Alert.alert('Authentication Required', 'Please log in to add connections.');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('followers')
+        .insert({
+          follower_id: user.id,
+          following_id: targetFarmerId,
+          status: 'approved'
+        });
+
+      if (error) throw error;
+
+      // Optimistically remove the connection from the directory feed list
+      setFarmers(prev => prev.filter(f => f.id !== targetFarmerId));
+      Alert.alert('Connected', `You are now connected with ${targetFarmerName}!`);
+    } catch (err) {
+      console.error('Error adding friend:', err);
+      Alert.alert('Connection Failed', err.message || 'Could not send connection request.');
+    }
+  };
 
   const headerElement = (
     <View style={styles.headerSection}>
@@ -69,7 +123,11 @@ export default function CommunityScreen() {
             <Text style={styles.location}>📍 {locationStr}</Text>
             <Text style={styles.farmType}>🌿 {item.farm_type || 'General Farming'}</Text>
           </View>
-          <TouchableOpacity style={styles.addFriendButton} activeOpacity={0.7}>
+          <TouchableOpacity 
+            style={styles.addFriendButton} 
+            activeOpacity={0.7}
+            onPress={() => handleAddFriend(item.id, item.name)}
+          >
             <MaterialCommunityIcons name="account-plus-outline" size={18} color="#FFFFFF" />
             <Text style={styles.addFriendText}>Add</Text>
           </TouchableOpacity>

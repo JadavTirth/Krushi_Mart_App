@@ -3,10 +3,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import colors from '../../utils/colors';
+import { useAuthStore } from '../../store/authStore';
 
 export default function ProfileHeader({ user, onEditPress }) {
   const { t } = useTranslation();
+  const router = useRouter();
+  const { logout } = useAuthStore();
 
   return (
     <View style={styles.container}>
@@ -28,64 +32,52 @@ export default function ProfileHeader({ user, onEditPress }) {
           
           <View style={styles.verticalDivider} />
 
-          <View style={styles.smallStatBox}>
-            <Text style={styles.statNumber}>{user.friends || 24}</Text>
+          <TouchableOpacity 
+            style={styles.smallStatBox} 
+            onPress={() => router.push('/friends')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.statNumber}>{user.friends || 0}</Text>
             <Text style={styles.statLabel}>{t('profile.yourFriends', 'Your Friends')}</Text>
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
 
       {/* Identity Details */}
       <View style={styles.identityDetails}>
         <Text style={styles.nameLeft}>{user.name}</Text>
-        <Text style={styles.smallBioLeft}>{t('profile.defaultBio', 'Helping farmers grow healthier crops 🌾')}</Text>
 
         <View style={styles.roleContainerLeft}>
           <MaterialCommunityIcons name="sprout" size={20} color={colors.primary} />
-          <Text style={styles.role}>{user.role || t('profile.farmer')}</Text>
+          <Text style={styles.role}>{user.role || t('profile.farmer', 'Farmer')}</Text>
         </View>
-        <Text style={styles.bioLeft}>{user.bio}</Text>
+
+        {user.bio ? (
+          <Text style={styles.bioTextAboveButton}>{user.bio}</Text>
+        ) : null}
 
         <TouchableOpacity style={styles.editButtonSmall} onPress={onEditPress} activeOpacity={0.7}>
+
           <Text style={styles.editButtonTextSmall}>{t('profile.updateProfile', '✏ Update Your Profile')}</Text>
         </TouchableOpacity>
-      </View>
 
-      {/* Farm Details Card */}
-      <View style={styles.infoCard}>
-        <Text style={styles.cardTitle}>{t('profile.farmDetails', 'Farm Details')}</Text>
+        {user?.is_admin ? (
+          <TouchableOpacity 
+            style={[styles.editButtonSmall, styles.adminButton]} 
+            onPress={() => router.push('/admin')} 
+            activeOpacity={0.7}
+          >
+            <Text style={styles.editButtonTextSmall}>🔑 Open Admin Panel</Text>
+          </TouchableOpacity>
+        ) : null}
 
-        <View style={styles.infoGrid}>
-          <View style={styles.infoColumn}>
-            <MaterialCommunityIcons name="map-marker-outline" size={20} color={colors.primary} style={styles.infoIconSmall} />
-            <View style={styles.infoTextContainer}>
-              <Text style={styles.infoLabel}>{t('profile.location', 'Location')}</Text>
-              <Text style={styles.infoValue} numberOfLines={1}>{user.location}</Text>
-            </View>
-          </View>
-
-          <View style={styles.infoColumn}>
-            <MaterialCommunityIcons name="leaf" size={20} color={colors.primary} style={styles.infoIconSmall} />
-            <View style={styles.infoTextContainer}>
-              <Text style={styles.infoLabel}>{t('profile.farmingType', 'Farming Type')}</Text>
-              <Text style={styles.infoValue} numberOfLines={1}>{user.farmType}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Main Crops Inline Integration */}
-        {user.crops && user.crops.length > 0 && (
-          <View style={styles.cropsSectionInline}>
-            <Text style={styles.cropsTitleInline}>{t('profile.cropsLabel', 'Crops:')}</Text>
-            <View style={styles.chipsContainerInline}>
-              {user.crops.map((crop, index) => (
-                <View key={index} style={styles.cropChipInline}>
-                  <Text style={styles.cropTextInline}>🌾 {crop}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
+        <TouchableOpacity 
+          style={[styles.editButtonSmall, styles.logoutButton]} 
+          onPress={logout} 
+          activeOpacity={0.7}
+        >
+          <Text style={styles.logoutButtonText}>🚪 Sign Out</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -94,8 +86,8 @@ export default function ProfileHeader({ user, onEditPress }) {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.background,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingHorizontal: 16, // 8pt
+    paddingBottom: 16, // 8pt
   },
   heroBackground: {
     position: 'absolute',
@@ -103,14 +95,14 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 280,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    borderBottomLeftRadius: 32, // 8pt
+    borderBottomRightRadius: 32, // 8pt
   },
   topProfileRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 40,
-    marginBottom: 20,
+    paddingTop: 48, // 8pt
+    marginBottom: 24, // 8pt
   },
   avatarLeft: {
     width: 120,
@@ -130,54 +122,55 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     alignItems: 'center',
-    marginLeft: 16,
+    marginLeft: 16, // 8pt
   },
   smallStatBox: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 16, // 8pt
   },
   verticalDivider: {
     width: 1,
-    height: 32,
+    height: 32, // 8pt
     backgroundColor: colors.divider,
-    marginHorizontal: 8,
+    marginHorizontal: 8, // 8pt
   },
   statNumber: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '700', // Heading weight
     color: colors.text,
-    marginBottom: 4,
+    marginBottom: 8, // 8pt
   },
   statLabel: {
     fontSize: 13,
     color: colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: '300', // Metadata weight
   },
   identityDetails: {
     alignItems: 'flex-start',
-    marginBottom: 24,
+    marginBottom: 24, // 8pt
   },
   nameLeft: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '700', // Heading weight
     color: colors.text,
-    marginBottom: 4,
+    marginBottom: 8, // 8pt
   },
-  smallBioLeft: {
+  bioTextAboveButton: {
     fontSize: 14,
     color: colors.textSecondary,
-    marginBottom: 12,
+    marginBottom: 8,
+    lineHeight: 20,
     fontStyle: 'italic',
   },
   roleContainerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginBottom: 16,
+    paddingHorizontal: 16, // 8pt
+    paddingVertical: 8, // 8pt
+    borderRadius: 24, // 8pt
+    marginBottom: 16, // 8pt
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -186,46 +179,61 @@ const styles = StyleSheet.create({
   },
   role: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '600', // Section title weight (sub-role badge)
     color: colors.primary,
-    marginLeft: 6,
+    marginLeft: 8, // 8pt
   },
   bioLeft: {
     fontSize: 15,
     color: colors.textSecondary,
-    lineHeight: 22,
+    lineHeight: 24, // 8pt
   },
   editButtonSmall: {
-    marginTop: 16,
+    marginTop: 16, // 8pt
     backgroundColor: colors.primary,
-    paddingVertical: 14,
+    paddingVertical: 16, // 8pt tap target
     borderRadius: 24,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  editButtonTextSmall: {
-    color: '#FFFFFF',
+  adminButton: {
+    backgroundColor: '#374151', // Dark slate gray for admin button
+    marginTop: 12,
+  },
+  logoutButton: {
+    backgroundColor: '#FFF0F0',
+    borderWidth: 1,
+    borderColor: '#FFCDD2',
+    marginTop: 12,
+  },
+  logoutButtonText: {
+    color: '#D32F2F',
     fontSize: 16,
     fontWeight: '600',
   },
+  editButtonTextSmall: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600', // Section title weight (semi-bold CTA text)
+  },
   infoCard: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    marginHorizontal: -16,
+    paddingVertical: 16, // 8pt
+    paddingHorizontal: 16, // 8pt
+    marginHorizontal: -16, // 8pt pull
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '600', // Section title weight
     color: colors.text,
-    marginBottom: 20,
+    marginBottom: 16, // 8pt
   },
   infoGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 16,
+    gap: 16, // 8pt
   },
   infoColumn: {
     flex: 1,
@@ -234,9 +242,9 @@ const styles = StyleSheet.create({
   },
   infoIconSmall: {
     backgroundColor: '#F4F8EE',
-    padding: 10,
-    borderRadius: 12,
-    marginRight: 12,
+    padding: 8, // 8pt
+    borderRadius: 8, // 8pt
+    marginRight: 8, // 8pt
   },
   infoTextContainer: {
     flex: 1,
@@ -244,22 +252,22 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: 13,
     color: colors.textLight,
-    marginBottom: 4,
-    fontWeight: '500',
+    marginBottom: 8, // 8pt
+    fontWeight: '300', // Metadata weight
   },
   infoValue: {
     fontSize: 15,
     color: colors.text,
-    fontWeight: '600',
+    fontWeight: '400', // Body weight (contrast to light label)
   },
   divider: {
     height: 1,
     backgroundColor: colors.divider,
-    marginVertical: 18,
+    marginVertical: 16, // 8pt
   },
   cropsSectionInline: {
-    marginTop: 20,
-    paddingTop: 16,
+    marginTop: 16, // 8pt
+    paddingTop: 16, // 8pt
     borderTopWidth: 1,
     borderTopColor: '#F0F2F5',
     flexDirection: 'row',
@@ -268,25 +276,25 @@ const styles = StyleSheet.create({
   },
   cropsTitleInline: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600', // Section title weight
     color: colors.text,
-    marginRight: 8,
+    marginRight: 8, // 8pt
   },
   chipsContainerInline: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     flex: 1,
-    gap: 12,
+    gap: 8, // 8pt
   },
   cropChipInline: {
     backgroundColor: '#F4F8EE',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 16, // 8pt
+    paddingVertical: 8, // 8pt
     borderRadius: 16,
   },
   cropTextInline: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '400', // Body weight
     color: colors.primary,
   },
 });

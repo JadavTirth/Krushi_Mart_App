@@ -1,17 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ScreenContainer from '../components/common/ScreenContainer';
 import MedicineCard from '../components/medicine/MedicineCard';
-import MedicineModal from '../components/medicine/MedicineModal';
 import { MOCK_MEDICINES } from '../constants/data';
 import colors from '../utils/colors';
 
 export default function CategoryProductsScreen() {
   const router = useRouter();
   const { categoryKey, categoryName } = useLocalSearchParams();
-  const [selectedMedicine, setSelectedMedicine] = useState(null);
 
   // Filter products by category key
   const filteredProducts = MOCK_MEDICINES.filter(med => {
@@ -45,18 +43,12 @@ export default function CategoryProductsScreen() {
         keyExtractor={item => item.id}
         numColumns={2}
         renderItem={({ item }) => (
-          <MedicineCard medicine={item} onPress={() => setSelectedMedicine(item)} />
+          <MedicineCard medicine={item} onPress={() => router.push({ pathname: '/product-details', params: { id: item.id } })} />
         )}
         contentContainerStyle={[styles.listContent, filteredProducts.length === 0 && styles.emptyListContent]}
         columnWrapperStyle={filteredProducts.length > 0 ? styles.columnWrapper : undefined}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={renderEmptyState}
-      />
-
-      <MedicineModal
-        visible={selectedMedicine !== null}
-        medicine={selectedMedicine}
-        onClose={() => setSelectedMedicine(null)}
       />
     </ScreenContainer>
   );

@@ -1,9 +1,10 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Animated, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { Image } from 'expo-image';
 import { useAuthStore } from '../store/authStore';
 import useFeed from '../hooks/useFeed';
 import FloatingButton from '../components/common/FloatingButton';
@@ -22,7 +23,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { logout } = useAuthStore();
-  const { posts, loading, refreshing, handleRefresh, handleLike, handleCreatePost } = useFeed();
+  const { posts, loading, refreshing, handleRefresh, handleLike, handleSave, syncSavedStatus, handleCreatePost } = useFeed();
   const [selectedPostForComment, setSelectedPostForComment] = useState(null);
   const [createPostModalVisible, setCreatePostModalVisible] = useState(false);
   const [createPostInitialPhoto, setCreatePostInitialPhoto] = useState(null);
@@ -30,6 +31,12 @@ export default function HomeScreen() {
   const [farmDetailsList, setFarmDetailsList] = useState([]);
   const [editingFarm, setEditingFarm] = useState(null);
   const scrollY = React.useRef(new Animated.Value(0)).current;
+
+  useFocusEffect(
+    React.useCallback(() => {
+      syncSavedStatus();
+    }, [syncSavedStatus])
+  );
 
   useEffect(() => {
     const loadFarmDetails = async () => {
@@ -80,7 +87,14 @@ export default function HomeScreen() {
   const renderHeader = () => (
     <View style={styles.listHeaderContainer}>
       <View style={styles.headerTopRow}>
-        <Text style={styles.greeting}>{t('home.goodMorning')}</Text>
+        <View style={styles.logoAndTitleContainer}>
+          <Image
+            source={require('../../assets/Flogo.svg')}
+            style={styles.logo}
+            contentFit="contain"
+          />
+          <Text style={styles.greeting}>{t('home.goodMorning')}</Text>
+        </View>
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <TouchableOpacity
             style={styles.notificationBtn}
@@ -150,6 +164,7 @@ export default function HomeScreen() {
           <PostCard
             post={item}
             onLike={handleLike}
+            onSave={handleSave}
             onCommentPress={() => setSelectedPostForComment(item)}
           />
         )}
@@ -221,6 +236,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     marginBottom: 16,
+  },
+  logoAndTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  logo: {
+    width: 48,
+    height: 48,
   },
   greeting: {
     fontSize: 24,

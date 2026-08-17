@@ -11,7 +11,24 @@ export default function LoginScreen() {
 
   const handleSendOTP = () => {
     if (phone.length >= 10) {
-      router.push({ pathname: '/(auth)/otp', params: { phone } });
+      const cleanPhone = phone.replace(/\s+/g, '');
+      const isDemoNum = 
+        cleanPhone === '9510332132' || 
+        cleanPhone === '9999999999' || 
+        cleanPhone === '9810332132'; // Developer test phone number
+
+      if (isDemoNum) {
+        console.log('Developer Bypass: Redirecting to OTP screen for demo number');
+        router.push({ 
+          pathname: '/(auth)/otp', 
+          params: { phone: cleanPhone, isDemo: 'true' } 
+        });
+      } else {
+        router.push({ 
+          pathname: '/(auth)/otp', 
+          params: { phone: cleanPhone } 
+        });
+      }
     }
   };
 

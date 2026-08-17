@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TextInput, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing, interpolate, interpolateColor } from 'react-native-reanimated';
 import colors from '../../utils/colors';
 
 export default function AnimatedInput({
@@ -34,12 +34,38 @@ export default function AnimatedInput({
   };
 
   const animatedBorderStyle = useAnimatedStyle(() => {
+    const borderColor = interpolateColor(
+      borderColorValue.value,
+      [0, 1],
+      [colors.divider, colors.primary]
+    );
+    const borderWidth = interpolate(
+      borderColorValue.value,
+      [0, 1],
+      [1, 2]
+    );
+    const shadowOpacity = interpolate(
+      borderColorValue.value,
+      [0, 1],
+      [0.05, 0.15]
+    );
+    const shadowRadius = interpolate(
+      borderColorValue.value,
+      [0, 1],
+      [2, 6]
+    );
+    const elevation = interpolate(
+      borderColorValue.value,
+      [0, 1],
+      [2, 4]
+    );
+
     return {
-      borderColor: borderColorValue.value === 1 ? colors.primary : colors.divider,
-      borderWidth: borderColorValue.value === 1 ? 2 : 1,
-      shadowOpacity: withTiming(borderColorValue.value === 1 ? 0.15 : 0.05),
-      shadowRadius: withTiming(borderColorValue.value === 1 ? 6 : 2),
-      elevation: withTiming(borderColorValue.value === 1 ? 4 : 2),
+      borderColor,
+      borderWidth,
+      shadowOpacity,
+      shadowRadius,
+      elevation,
     };
   });
 

@@ -3,6 +3,7 @@ import { fetchPosts, fetchPostById, createPost, subscribeToPosts } from '../serv
 import { toggleLike, subscribeToLikes } from '../services/likeService';
 import { uploadPostImage } from '../services/storageHelper';
 import { useAuthStore } from '../store/authStore';
+import { getSavedPostIds, toggleSavePost } from '../services/bookmarkService';
 
 /**
  * Custom hook to manage the community feed state, post creation, likes, and realtime synchronization.
@@ -24,8 +25,14 @@ export default function useFeed() {
     }
 
     try {
-      const data = await fetchPosts(userId);
-      setPosts(data);
+      const [data, savedPostIds] = await Promise.all([
+        fetchPosts(userId),
+        getSavedPostIds()
+      ]);
+      setPosts(data.map(post => ({
+        ...post,
+        isSaved: savedPostIds.includes(post.id)
+      })));
     } catch (error) {
       console.error('Failed to load feed:', error);
     } finally {
@@ -122,7 +129,7 @@ export default function useFeed() {
           setPosts(prevPosts => {
             // Avoid duplicate addition if the creator already added it locally
             if (prevPosts.some(p => p.id === fullPost.id)) return prevPosts;
-            return [fullPost, ...prevPosts];
+            return [{ ...fullPost, isSaved: false }, ...prevPosts];
           });
         } catch (err) {
           console.error('Failed to fetch realtime inserted post:', err);
@@ -132,7 +139,7 @@ export default function useFeed() {
       } else if (eventType === 'UPDATE') {
         try {
           const fullPost = await fetchPostById(newRecord.id, userId);
-          setPosts(prevPosts => prevPosts.map(p => p.id === fullPost.id ? fullPost : p));
+          setPosts(prevPosts => prevPosts.map(p => p.id === fullPost.id ? { ...fullPost, isSaved: p.isSaved } : p));
         } catch (err) {
           console.error('Failed to fetch realtime updated post:', err);
         }
@@ -151,12 +158,45 @@ export default function useFeed() {
     };
   }, [userId, loadFeed]);
 
+  // Handle post saving
+  const handleSave = useCallback(async (postId) => {
+    try {
+      const updatedSavedIds = await toggleSavePost(postId);
+      setPosts(prevPosts => prevPosts.map(post => {
+        if (post.id === postId) {
+          return {
+            ...post,
+            isSaved: updatedSavedIds.includes(post.id)
+          };
+        }
+        return post;
+      }));
+    } catch (error) {
+      console.error('Failed to toggle save post in hook:', error);
+    }
+  }, []);
+
+  // Sync saved status of posts from storage
+  const syncSavedStatus = useCallback(async () => {
+    try {
+      const savedPostIds = await getSavedPostIds();
+      setPosts(prevPosts => prevPosts.map(post => ({
+        ...post,
+        isSaved: savedPostIds.includes(post.id)
+      })));
+    } catch (error) {
+      console.error('Failed to sync saved status:', error);
+    }
+  }, []);
+
   return {
     posts,
     loading,
     refreshing,
     handleRefresh: () => loadFeed(true),
     handleLike,
+    handleSave,
+    syncSavedStatus,
     handleCreatePost,
   };
 }

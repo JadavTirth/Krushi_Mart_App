@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import colors from '../src/utils/colors';
 import '../src/localization/i18n';
 import { AuthProvider, useAuthStore } from '../src/store/authStore';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
 
 function RootNavigation() {
   const { isLoggedIn, hasSeenIntro, isLoading } = useAuthStore();
@@ -26,12 +26,18 @@ function RootNavigation() {
     } else if (isLoggedIn && inAuthGroup) {
       router.replace('/(tabs)');
     }
-  }, [isLoggedIn, hasSeenIntro, isLoading, segments, router]);
+  }, [isLoggedIn, hasSeenIntro, isLoading, segments]);
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8F9FA' }}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={styles.splashContainer}>
+        <StatusBar style="light" backgroundColor={colors.primary} />
+        <View style={styles.logoBadge}>
+          <Text style={styles.logoEmoji}>🌾</Text>
+        </View>
+        <Text style={styles.splashTitle}>KRUSHI MART</Text>
+        <Text style={styles.splashSubtitle}>Connecting Farmers, Growing Together</Text>
+        <ActivityIndicator size="large" color="#FFFFFF" style={styles.spinner} />
       </View>
     );
   }
@@ -54,3 +60,40 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  splashContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#2E7D32', // Premium deep green
+  },
+  logoBadge: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logoEmoji: {
+    fontSize: 50,
+  },
+  splashTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    letterSpacing: 2,
+    marginBottom: 6,
+  },
+  splashSubtitle: {
+    fontSize: 14,
+    color: '#A5D6A7', // Light green
+    marginBottom: 40,
+    fontWeight: '500',
+  },
+  spinner: {
+    marginTop: 20,
+  },
+});

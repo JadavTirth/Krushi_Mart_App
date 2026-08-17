@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text,
   },
   farmCountBadge: {
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
   },
   farmCountText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '300',
     color: colors.primary,
   },
   headerAddBtn: {
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   },
   headerAddBtnText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '400',
     color: colors.primary,
     marginLeft: 2,
   },
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
   statChipText: {
     fontSize: 9,
     color: colors.text,
-    fontWeight: '700',
+    fontWeight: '400',
     maxWidth: 55,
   },
   // Add Card styles

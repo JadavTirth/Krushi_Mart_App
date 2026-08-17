@@ -77,7 +77,6 @@ CREATE TABLE IF NOT EXISTS public.users (
     experience_years INTEGER CHECK (experience_years >= 0),
     bio TEXT,
     primary_crops TEXT[] DEFAULT '{}',
-    current_crops TEXT[] DEFAULT '{}',
     medicines_used TEXT[] DEFAULT '{}',
     is_verified BOOLEAN DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()

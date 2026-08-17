@@ -113,7 +113,6 @@ export const updateProfile = async (userId, profileData) => {
         experience_years: profileData.experience_years,
         bio: profileData.bio,
         primary_crops: profileData.primary_crops,
-        current_crops: profileData.current_crops,
         medicines_used: profileData.medicines_used,
         email: profileData.email,
       })

@@ -16,7 +16,6 @@ export default function EditProfileModal({ visible, onClose, user, onSave }) {
     state: user?.state || '',
     farmSize: user?.farmSize || '',
     primaryCrops: user?.primaryCrops || '',
-    currentCrops: user?.currentCrops || '',
     medicinesUsed: user?.medicinesUsed || '',
     bio: user?.bio || '',
   });
@@ -36,7 +35,6 @@ export default function EditProfileModal({ visible, onClose, user, onSave }) {
         state: user.state || '',
         farmSize: user.farmSize || '',
         primaryCrops: user.primaryCrops || '',
-        currentCrops: user.currentCrops || '',
         medicinesUsed: user.medicinesUsed || '',
         bio: user.bio || '',
       });
@@ -214,17 +212,6 @@ export default function EditProfileModal({ visible, onClose, user, onSave }) {
                 value={formData.primaryCrops}
                 onChangeText={(val) => handleChange('primaryCrops', val)}
                 placeholder="e.g. Wheat, Cotton, Sugarcane"
-                placeholderTextColor={colors.textLight}
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Currently Cultivating</Text>
-              <TextInput
-                style={styles.input}
-                value={formData.currentCrops}
-                onChangeText={(val) => handleChange('currentCrops', val)}
-                placeholder="e.g. Tomatoes and Onions"
                 placeholderTextColor={colors.textLight}
               />
             </View>

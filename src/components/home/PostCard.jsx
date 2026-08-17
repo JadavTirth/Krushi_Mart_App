@@ -1,18 +1,18 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Image, StyleSheet, Text, TouchableOpacity, View, Share } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming, runOnJS } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import colors from '../../utils/colors';
+import ImageZoomModal from '../common/ImageZoomModal';
 
-export default function PostCard({ post, onLike, onComment, onCommentPress, onShare }) {
-  const { t } = useTranslation();
+export default function PostCard({ post, onLike, onComment, onCommentPress, onShare, onSave }) {
   const handleComment = onCommentPress || onComment;
 
   const liked = post.liked;
-  const [isSaved, setIsSaved] = useState(false);
+  const isSaved = post.isSaved;
   const scale = useSharedValue(1);
+  const [isZoomVisible, setIsZoomVisible] = useState(false);
 
   const animatedIconStyle = useAnimatedStyle(() => {
     return {
@@ -42,7 +42,7 @@ export default function PostCard({ post, onLike, onComment, onCommentPress, onSh
   };
 
   const handleSavePress = () => {
-    setIsSaved(!isSaved);
+    if (onSave) onSave(post.id);
   };
 
   // Pinch and Pan to Zoom Logic
@@ -74,8 +74,18 @@ export default function PostCard({ post, onLike, onComment, onCommentPress, onSh
       translateX.value = withTiming(0, { duration: 250 });
       translateY.value = withTiming(0, { duration: 250 });
     });
+  const tapGesture = Gesture.Tap()
+    .numberOfTaps(1)
+    .onEnd((_event, success) => {
+      if (success) {
+        runOnJS(setIsZoomVisible)(true);
+      }
+    });
 
-  const composedGesture = Gesture.Simultaneous(pinchGesture, panGesture);
+  const composedGesture = Gesture.Exclusive(
+    Gesture.Simultaneous(pinchGesture, panGesture),
+    tapGesture
+  );
 
   const animatedImageZoomStyle = useAnimatedStyle(() => {
     return {
@@ -117,6 +127,11 @@ export default function PostCard({ post, onLike, onComment, onCommentPress, onSh
           </View>
         )}
 
+        {/* Title */}
+        {post.title && (
+          <Text style={styles.postTitle}>{post.title}</Text>
+        )}
+
         {/* Caption */}
         <Text style={styles.caption} numberOfLines={5}>
           {post.text}
@@ -125,33 +140,32 @@ export default function PostCard({ post, onLike, onComment, onCommentPress, onSh
 
       {/* 3. Post Image Section (Full Width) */}
       {post.image && (
-        <GestureDetector gesture={composedGesture}>
-          <Animated.View style={[styles.imageContainer, { overflow: 'hidden' }]}>
-            <Animated.Image 
-              source={{ uri: post.image }} 
-              style={[styles.postImage, animatedImageZoomStyle]} 
-              resizeMode="cover" 
-            />
-            {post.images && post.images.length > 1 && (
-              <View style={styles.multipleImageBadge}>
-                <MaterialCommunityIcons name="image-multiple" size={14} color="#FFF" />
-                <Text style={styles.multipleImageText}>1/{post.images.length}</Text>
-              </View>
-            )}
-          </Animated.View>
-        </GestureDetector>
+        <>
+          <GestureDetector gesture={composedGesture}>
+            <Animated.View style={[styles.imageContainer, { overflow: 'hidden' }]}>
+              <Animated.Image 
+                source={{ uri: post.image }} 
+                style={[styles.postImage, animatedImageZoomStyle]} 
+                resizeMode="cover" 
+              />
+              {post.images && post.images.length > 1 && (
+                <View style={styles.multipleImageBadge}>
+                  <MaterialCommunityIcons name="image-multiple" size={14} color="#FFF" />
+                  <Text style={styles.multipleImageText}>1/{post.images.length}</Text>
+                </View>
+              )}
+            </Animated.View>
+          </GestureDetector>
+
+          <ImageZoomModal
+            visible={isZoomVisible}
+            imageUrl={post.image}
+            onClose={() => setIsZoomVisible(false)}
+          />
+        </>
       )}
 
-      {/* 4. Engagement Stats Section */}
-      <View style={styles.statsContainer}>
-        <Text style={styles.statsText}>
-          {post.likes} {t('post.likes')} • {post.comments} {t('post.comments')} {post.shares !== undefined ? `• ${post.shares} ${t('post.shares')}` : ''}
-        </Text>
-      </View>
-
-      <View style={styles.divider} />
-
-      {/* 5. Action Buttons Section */}
+      {/* Action Buttons Section */}
       <View style={styles.actionsContainer}>
         <TouchableOpacity style={styles.actionButton} onPress={handleLikePress} activeOpacity={0.7}>
           <Animated.View style={animatedIconStyle}>
@@ -161,12 +175,12 @@ export default function PostCard({ post, onLike, onComment, onCommentPress, onSh
               color={liked ? colors.primary : colors.textSecondary}
             />
           </Animated.View>
-          <Text style={[styles.actionLabel, liked && styles.actionLabelActive]}>{t('post.like')}</Text>
+          <Text style={styles.actionCount}>{post.likes}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton} onPress={handleComment} activeOpacity={0.7}>
           <MaterialCommunityIcons name="comment-outline" size={24} color={colors.textSecondary} />
-          <Text style={styles.actionLabel}>{t('post.comment')}</Text>
+          <Text style={styles.actionCount}>{post.comments}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton} onPress={handleSavePress} activeOpacity={0.7}>
@@ -175,9 +189,6 @@ export default function PostCard({ post, onLike, onComment, onCommentPress, onSh
             size={24} 
             color={isSaved ? colors.primary : colors.textSecondary} 
           />
-          <Text style={[styles.actionLabel, isSaved && styles.actionLabelActive]}>
-            {isSaved ? 'Saved' : 'Save'}
-          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -187,16 +198,26 @@ export default function PostCard({ post, onLike, onComment, onCommentPress, onSh
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    paddingTop: 16,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0', 
+    marginHorizontal: 16, // 8pt floating card
+    marginTop: 16, // 8pt floating separation
+    borderRadius: 16, // Beautiful rounded corners
+    paddingTop: 16, // 8pt
+    paddingBottom: 16, // 8pt
+    // Minimal depth shadows (no hard border lines)
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    overflow: 'hidden', // Clips child image corners to match card radius!
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    paddingHorizontal: 16, // 8pt
+    marginBottom: 8, // 8pt
   },
   avatar: {
     width: 48,
@@ -206,7 +227,7 @@ const styles = StyleSheet.create({
   },
   headerTextContainer: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 16, // 8pt
   },
   nameRow: {
     flexDirection: 'row',
@@ -214,52 +235,60 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '600', // Section title weight
     color: colors.text,
-    marginRight: 4,
+    marginRight: 8, // 8pt
   },
   verifiedIcon: {
-    marginTop: 2,
+    marginTop: 0,
   },
   metaText: {
     fontSize: 13,
+    fontWeight: '300', // Metadata weight
     color: colors.textSecondary,
-    marginTop: 2,
+    marginTop: 4, // 8pt micro-spacing
     opacity: 0.8,
   },
   moreButton: {
-    padding: 8,
-    marginRight: -8,
+    padding: 8, // 8pt
+    marginRight: -8, // 8pt
   },
   content: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 16, // 8pt
   },
   tagContainer: {
     backgroundColor: colors.surfaceCard,
     alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 8, // 8pt
+    paddingVertical: 4, // micro
     borderRadius: 16,
-    marginBottom: 12,
+    marginBottom: 8, // 8pt
   },
   tagText: {
     color: colors.primary,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '400', // Body weight
+  },
+  postTitle: {
+    fontSize: 18,
+    fontWeight: '700', // Heading weight
+    color: colors.primaryDark,
+    marginBottom: 8, // 8pt
   },
   caption: {
     fontSize: 15,
+    fontWeight: '400', // Body weight
     color: colors.text,
-    lineHeight: 22,
+    lineHeight: 24, // 8pt line height
     maxWidth: '96%',
-    marginBottom: 16,
+    marginBottom: 8, // 8pt
   },
   imageContainer: {
     position: 'relative',
     width: '100%',
-    aspectRatio: 4 / 5,
+    aspectRatio: 4 / 3, // widescreen aspect ratio
     backgroundColor: colors.divider,
-    marginBottom: 12,
+    marginBottom: 8, // 8pt
   },
   postImage: {
     width: '100%',
@@ -267,55 +296,38 @@ const styles = StyleSheet.create({
   },
   multipleImageBadge: {
     position: 'absolute',
-    top: 12,
-    right: 12,
+    top: 16, // 8pt
+    right: 16, // 8pt
     backgroundColor: 'rgba(0,0,0,0.6)',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 16, // 8pt
+    paddingVertical: 8, // 8pt
     borderRadius: 20,
-    gap: 4,
+    gap: 8, // 8pt
   },
   multipleImageText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '600',
-  },
-  statsContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  statsText: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    fontWeight: '400',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.divider,
-    marginHorizontal: 16,
+    fontWeight: '400', // Body weight
   },
   actionsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 8,
+    justifyContent: 'space-around', // Equal spacing between column actions
+    alignItems: 'center',
+    paddingHorizontal: 16, // 8pt
+    paddingTop: 8, // 8pt
   },
   actionButton: {
-    flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    gap: 8,
+    paddingVertical: 8, // 8pt tap target height
+    flex: 1,
   },
-  actionLabel: {
-    fontSize: 14,
+  actionCount: {
+    fontSize: 12,
     color: colors.textSecondary,
-    fontWeight: '500',
-  },
-  actionLabelActive: {
-    color: colors.primary,
+    fontWeight: '300', // Metadata weight
+    marginTop: 4, // 8pt micro-spacing
   },
 });
